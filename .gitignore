@@ -1,0 +1,5 @@
+build
+node_modules
+scripts/result.json
+.env
+.vscode
