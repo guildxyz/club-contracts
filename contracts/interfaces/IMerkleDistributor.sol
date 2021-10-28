@@ -9,6 +9,9 @@ interface IMerkleDistributor {
     // Returns the merkle root of the merkle tree containing account balances available to claim.
     function merkleRoot() external view returns (bytes32);
 
+    // Returns the unix timestamp that marks the end of the token distribution.
+    function distributionEnd() external view returns (uint256);
+
     // Returns true if the index has been marked claimed.
     function isClaimed(uint256 index) external view returns (bool);
 
@@ -20,6 +23,12 @@ interface IMerkleDistributor {
         bytes32[] calldata merkleProof
     ) external;
 
+    // Allows the owner to reclaim the tokens after the distribution has ended.
+    function withdraw(address recipient) external;
+
     // This event is triggered whenever a call to #claim succeeds.
     event Claimed(uint256 index, address account, uint256 amount);
+
+    // This event is triggered whenever a call to #withdraw succeeds.
+    event Withdrawn(address account, uint256 amount);
 }
