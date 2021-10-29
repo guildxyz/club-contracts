@@ -25,7 +25,7 @@ jobs:
         run: npm install truffle ts-node
 
       - name: Compile contracts
-      - run: truffle compile
+        run: truffle compile
 
       - name: Run tests
         run: npm test
