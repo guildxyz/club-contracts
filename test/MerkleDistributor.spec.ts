@@ -15,6 +15,16 @@ const overrides = {
 
 const ZERO_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
+async function blockTimestamp(provider: any): Promise<BigNumber> {
+  const block = await provider.getBlock("latest");
+  return BigNumber.from(block.timestamp);
+}
+
+async function increaseTime(provider: any, delta: Number): Promise<void> {
+  await provider.send("evm_increaseTime", [delta]);
+  await provider.send("evm_mine");
+}
+
 async function setBalance(token: any, to: string, amount: BigNumber) {
   const old: BigNumber = await token.balanceOf(to);
   if (old.lt(amount)) await token.mint(to, amount.sub(old));
@@ -69,7 +79,31 @@ describe("MerkleDistributor", () => {
     });
   });
 
+  describe("#distributionEnd", () => {
+    it("returns the distribution end timestamp", async () => {
+      const distributor = await deployContract(
+        wallet0,
+        Distributor,
+        [token.address, ZERO_BYTES32, distributionDuration],
+        overrides
+      );
+      const timestamp = await blockTimestamp(provider);
+      expect(await distributor.distributionEnd()).to.eq(timestamp.add(distributionDuration));
+    });
+  });
+
   describe("#claim", () => {
+    it("fails if distribution ended", async () => {
+      const distributor = await deployContract(
+        wallet0,
+        Distributor,
+        [token.address, ZERO_BYTES32, distributionDuration],
+        overrides
+      );
+      await increaseTime(provider, distributionDuration + 1);
+      await expect(distributor.claim(0, wallet0.address, 10, [])).to.be.revertedWith("Distribution period ended");
+    });
+
     it("fails for empty proof", async () => {
       const distributor = await deployContract(
         wallet0,
@@ -197,7 +231,7 @@ describe("MerkleDistributor", () => {
         await expect(distributor.claim(1, wallet1.address, 101, proof0, overrides)).to.be.revertedWith("Invalid proof");
       });
 
-      it("cannot claim more than proof", async () => {
+      it("cannot claim more with one proof", async () => {
         const proof0 = tree.getProof(0, wallet0.address, BigNumber.from(100));
         await expect(distributor.claim(0, wallet0.address, 101, proof0, overrides)).to.be.revertedWith("Invalid proof");
       });
@@ -209,9 +243,11 @@ describe("MerkleDistributor", () => {
         expect(receipt.gasUsed).to.eq(78889);
       });
     });
+
     describe("larger tree", () => {
       let distributor: Contract;
       let tree: BalanceTree;
+
       beforeEach("deploy", async () => {
         tree = new BalanceTree(
           wallets.map((wallet, ix) => {
@@ -307,12 +343,14 @@ describe("MerkleDistributor", () => {
         const receipt = await tx.wait();
         expect(receipt.gasUsed).to.eq(93113);
       });
+
       it("gas deeper node", async () => {
         const proof = tree.getProof(90000, wallet0.address, BigNumber.from(100));
         const tx = await distributor.claim(90000, wallet0.address, 100, proof, overrides);
         const receipt = await tx.wait();
         expect(receipt.gasUsed).to.eq(93049);
       });
+
       it("gas average random distribution", async () => {
         let total: BigNumber = BigNumber.from(0);
         let count: number = 0;
@@ -326,6 +364,7 @@ describe("MerkleDistributor", () => {
         const average = total.div(count);
         expect(average).to.eq(78525);
       });
+
       // this is what we gas golfed by packing the bitmap
       it("gas average first 25", async () => {
         let total: BigNumber = BigNumber.from(0);
@@ -353,6 +392,48 @@ describe("MerkleDistributor", () => {
     });
   });
 
+  describe("#withdraw", async () => {
+    it("fails if distribution period has not ended yet", async () => {
+      const distributor = await deployContract(
+        wallet0,
+        Distributor,
+        [token.address, ZERO_BYTES32, distributionDuration],
+        overrides
+      );
+      await expect(distributor.withdraw(wallet0.address)).to.be.revertedWith("Distribution period did not end");
+    });
+
+    it("transfers tokens to the recipient", async () => {
+      const distributor = await deployContract(
+        wallet0,
+        Distributor,
+        [token.address, ZERO_BYTES32, distributionDuration],
+        overrides
+      );
+      await setBalance(token, distributor.address, BigNumber.from("101"));
+      await increaseTime(provider, distributionDuration + 1);
+      const oldBalance = await token.balanceOf(distributor.address);
+      await distributor.withdraw(wallet0.address);
+      const newBalance = await token.balanceOf(distributor.address);
+      expect(oldBalance).to.eq(BigNumber.from("101"));
+      expect(newBalance).to.eq(BigNumber.from("0"));
+    });
+
+    it("emits Withdrawn event", async () => {
+      const distributor = await deployContract(
+        wallet0,
+        Distributor,
+        [token.address, ZERO_BYTES32, distributionDuration],
+        overrides
+      );
+      await setBalance(token, distributor.address, BigNumber.from("101"));
+      await increaseTime(provider, distributionDuration + 1);
+      await expect(distributor.withdraw(wallet0.address))
+        .to.emit(distributor, "Withdrawn")
+        .withArgs(wallet0.address, BigNumber.from("101"));
+    });
+  });
+
   describe("parseBalanceMap", () => {
     let distributor: Contract;
     let claims: {
@@ -362,6 +443,7 @@ describe("MerkleDistributor", () => {
         proof: string[];
       };
     };
+
     beforeEach("deploy", async () => {
       const {
         claims: innerClaims,
