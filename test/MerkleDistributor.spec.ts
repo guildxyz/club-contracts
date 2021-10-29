@@ -21,7 +21,7 @@ async function setBalance(token: any, to: string, amount: BigNumber) {
   else if (old.gt(amount)) await token.burn(to, old.sub(amount));
 }
 
-xdescribe("MerkleDistributor", () => {
+describe("MerkleDistributor", () => {
   const provider = new MockProvider({
     ganacheOptions: {
       hardfork: "istanbul",
