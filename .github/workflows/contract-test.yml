@@ -22,7 +22,7 @@ jobs:
         run: npm install
 
       - name: Install additional dependencies
-        run: npm install truffle ts-node
+        run: npm install truffle typescript @types/node  ts-node
 
       - name: Compile contracts
         run: npx truffle compile
