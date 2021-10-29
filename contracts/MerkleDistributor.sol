@@ -61,7 +61,8 @@ contract MerkleDistributor is IMerkleDistributor, Ownable {
     // Allows the owner to reclaim the tokens deposited in this contract
     function withdraw(address recipient) external onlyOwner {
         require(block.timestamp > distributionEnd, "Distribution period did not end");
-        require(IERC20(token).transfer(recipient, IERC20(token).balanceOf(address(this))), "Withdraw transfer failed");
-        emit Withdrawn(recipient, IERC20(token).balanceOf(address(this)));
+        uint256 balance = IERC20(token).balanceOf(address(this));
+        require(IERC20(token).transfer(recipient, balance), "Withdraw transfer failed");
+        emit Withdrawn(recipient, balance);
     }
 }
