@@ -18,8 +18,8 @@ jobs:
         with:
           node-version: "12"
 
-      - name: Install ts-node
-        run: npm install -g ts-node
+      - name: Install ts-node & link it
+        run: npm install -g ts-node && npm link ts-node
 
       - name: Install dependencies
         run: npm install
