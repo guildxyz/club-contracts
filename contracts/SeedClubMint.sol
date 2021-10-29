@@ -13,8 +13,8 @@ contract SeedClubMint {
         string calldata tokenName,
         string calldata tokenSymbol,
         uint8 tokenDecimals,
-        uint256 initialSupply,
         address tokenOwner,
+        uint256 initialSupply,
         bool mintable
     ) external {
         address token;
