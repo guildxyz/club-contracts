@@ -18,13 +18,11 @@ jobs:
         with:
           node-version: "12"
 
-      - name: Install ts-node & link it
-        run: |
-          npm install -g typescript @types/node ts-node
-          npm link ts-node
-
       - name: Install dependencies
         run: npm install
+
+      - name: Install ts-node
+        run: npm install typescript @types/node ts-node
 
       - name: Run tests
         run: npm test
