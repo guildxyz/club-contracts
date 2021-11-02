@@ -101,7 +101,8 @@ describe("MerkleDistributor", () => {
         overrides
       );
       await increaseTime(provider, distributionDuration + 1);
-      await expect(distributor.claim(0, wallet0.address, 10, [])).to.be.revertedWith("Distribution period ended");
+      // error DistributionEnded(uint256 current, uint256 end);
+      await expect(distributor.claim(0, wallet0.address, 10, [])).to.be.reverted;
     });
 
     it("fails for empty proof", async () => {
@@ -111,7 +112,8 @@ describe("MerkleDistributor", () => {
         [token.address, ZERO_BYTES32, distributionDuration],
         overrides
       );
-      await expect(distributor.claim(0, wallet0.address, 10, [])).to.be.revertedWith("Invalid proof");
+      // error InvalidProof();
+      await expect(distributor.claim(0, wallet0.address, 10, [])).to.be.reverted;
     });
 
     it("fails for invalid index", async () => {
@@ -121,7 +123,8 @@ describe("MerkleDistributor", () => {
         [token.address, ZERO_BYTES32, distributionDuration],
         overrides
       );
-      await expect(distributor.claim(0, wallet0.address, 10, [])).to.be.revertedWith("Invalid proof");
+      // error InvalidProof();
+      await expect(distributor.claim(0, wallet0.address, 10, [])).to.be.reverted;
     });
 
     describe("two account tree", () => {
@@ -179,9 +182,8 @@ describe("MerkleDistributor", () => {
       it("cannot allow two claims", async () => {
         const proof0 = tree.getProof(0, wallet0.address, BigNumber.from(100));
         await distributor.claim(0, wallet0.address, 100, proof0, overrides);
-        await expect(distributor.claim(0, wallet0.address, 100, proof0, overrides)).to.be.revertedWith(
-          "Drop already claimed"
-        );
+        // error DropClaimed();
+        await expect(distributor.claim(0, wallet0.address, 100, proof0, overrides)).to.be.reverted;
       });
 
       it("cannot claim more than once: 0 and then 1", async () => {
@@ -200,9 +202,10 @@ describe("MerkleDistributor", () => {
           overrides
         );
 
+        // error DropClaimed();
         await expect(
           distributor.claim(0, wallet0.address, 100, tree.getProof(0, wallet0.address, BigNumber.from(100)), overrides)
-        ).to.be.revertedWith("Drop already claimed");
+        ).to.be.reverted;
       });
 
       it("cannot claim more than once: 1 and then 0", async () => {
@@ -221,19 +224,22 @@ describe("MerkleDistributor", () => {
           overrides
         );
 
+        // error DropClaimed();
         await expect(
           distributor.claim(1, wallet1.address, 101, tree.getProof(1, wallet1.address, BigNumber.from(101)), overrides)
-        ).to.be.revertedWith("Drop already claimed");
+        ).to.be.reverted;
       });
 
       it("cannot claim for address other than proof", async () => {
         const proof0 = tree.getProof(0, wallet0.address, BigNumber.from(100));
-        await expect(distributor.claim(1, wallet1.address, 101, proof0, overrides)).to.be.revertedWith("Invalid proof");
+        // error InvalidProof();
+        await expect(distributor.claim(1, wallet1.address, 101, proof0, overrides)).to.be.reverted;
       });
 
       it("cannot claim more with one proof", async () => {
         const proof0 = tree.getProof(0, wallet0.address, BigNumber.from(100));
-        await expect(distributor.claim(0, wallet0.address, 101, proof0, overrides)).to.be.revertedWith("Invalid proof");
+        // error InvalidProof();
+        await expect(distributor.claim(0, wallet0.address, 101, proof0, overrides)).to.be.reverted;
       });
 
       it("gas", async () => {
@@ -384,9 +390,8 @@ describe("MerkleDistributor", () => {
         for (let i = 0; i < 25; i += Math.floor(Math.random() * (NUM_LEAVES / NUM_SAMPLES))) {
           const proof = tree.getProof(i, wallet0.address, BigNumber.from(100));
           await distributor.claim(i, wallet0.address, 100, proof, overrides);
-          await expect(distributor.claim(i, wallet0.address, 100, proof, overrides)).to.be.revertedWith(
-            "Drop already claimed"
-          );
+          // error InvalidProof();
+          await expect(distributor.claim(i, wallet0.address, 100, proof, overrides)).to.be.reverted;
         }
       });
     });
@@ -400,7 +405,8 @@ describe("MerkleDistributor", () => {
         [token.address, ZERO_BYTES32, distributionDuration],
         overrides
       );
-      await expect(distributor.withdraw(wallet0.address)).to.be.revertedWith("Distribution period did not end");
+      // error DistributionOngoing(uint256 current, uint256 end);
+      await expect(distributor.withdraw(wallet0.address)).to.be.reverted;
     });
 
     it("fails if there's nothing to withdraw", async () => {
@@ -413,7 +419,8 @@ describe("MerkleDistributor", () => {
       await increaseTime(provider, distributionDuration + 1);
       const balance = await token.balanceOf(distributor.address);
       expect(balance).to.eq(BigNumber.from("0"));
-      await expect(distributor.withdraw(wallet0.address)).to.be.revertedWith("Nothing to withdraw");
+      // error AlreadyWithdrawn();
+      await expect(distributor.withdraw(wallet0.address)).to.be.reverted;
     });
 
     it("transfers tokens to the recipient", async () => {
@@ -510,9 +517,8 @@ describe("MerkleDistributor", () => {
         await expect(distributor.claim(claim.index, account, claim.amount, claim.proof, overrides))
           .to.emit(distributor, "Claimed")
           .withArgs(claim.index, account, claim.amount);
-        await expect(distributor.claim(claim.index, account, claim.amount, claim.proof, overrides)).to.be.revertedWith(
-          "Drop already claimed"
-        );
+        // error DropClaimed();
+        await expect(distributor.claim(claim.index, account, claim.amount, claim.proof, overrides)).to.be.reverted;
       }
       expect(await token.balanceOf(distributor.address)).to.eq(0);
     });

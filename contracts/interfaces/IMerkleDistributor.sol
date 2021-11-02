@@ -31,4 +31,22 @@ interface IMerkleDistributor {
 
     // This event is triggered whenever a call to #withdraw succeeds.
     event Withdrawn(address account, uint256 amount);
+
+    // Error thrown when there's nothing to withdraw.
+    error AlreadyWithdrawn();
+
+    // Error thrown when the distribution period ended.
+    error DistributionEnded(uint256 current, uint256 end);
+
+    // Error thrown when the distribution period did not end yet.
+    error DistributionOngoing(uint256 current, uint256 end);
+
+    // Error thrown when the drop is already claimed.
+    error DropClaimed();
+
+    // Error thrown when the Merkle proof is invalid.
+    error InvalidProof();
+
+    // Error thrown when a transfer failed.
+    error TransferFailed(address token, address from, address to);
 }

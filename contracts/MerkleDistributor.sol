@@ -44,26 +44,26 @@ contract MerkleDistributor is IMerkleDistributor, Ownable {
         uint256 amount,
         bytes32[] calldata merkleProof
     ) external {
-        require(block.timestamp <= distributionEnd, "Distribution period ended");
-        require(!isClaimed(index), "Drop already claimed");
+        if (block.timestamp > distributionEnd) revert DistributionEnded(block.timestamp, distributionEnd);
+        if (isClaimed(index)) revert DropClaimed();
 
         // Verify the merkle proof.
         bytes32 node = keccak256(abi.encodePacked(index, account, amount));
-        require(MerkleProof.verify(merkleProof, merkleRoot, node), "Invalid proof");
+        if (!MerkleProof.verify(merkleProof, merkleRoot, node)) revert InvalidProof();
 
         // Mark it claimed and send the token.
         _setClaimed(index);
-        require(IERC20(token).transfer(account, amount), "Transfer failed");
+        if (!IERC20(token).transfer(account, amount)) revert TransferFailed(token, address(this), account);
 
         emit Claimed(index, account, amount);
     }
 
-    // Allows the owner to reclaim the tokens deposited in this contract
+    // Allows the owner to reclaim the tokens deposited in this contract.
     function withdraw(address recipient) external onlyOwner {
-        require(block.timestamp > distributionEnd, "Distribution period did not end");
+        if (block.timestamp <= distributionEnd) revert DistributionOngoing(block.timestamp, distributionEnd);
         uint256 balance = IERC20(token).balanceOf(address(this));
-        require(balance > 0, "Nothing to withdraw");
-        require(IERC20(token).transfer(recipient, balance), "Withdraw transfer failed");
+        if (balance == 0) revert AlreadyWithdrawn();
+        if (!IERC20(token).transfer(recipient, balance)) revert TransferFailed(token, address(this), recipient);
         emit Withdrawn(recipient, balance);
     }
 }
