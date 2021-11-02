@@ -7,8 +7,8 @@ The smart contracts in this repository are being used by [Seed Club](https://see
 To run the project you need:
 
 - [Node.js](https://nodejs.org) development environment.
-- [Truffle](https://www.trufflesuite.com/truffle) for compiling, deploying and testing.
-- (optional) Local [Ganache](https://www.trufflesuite.com/ganache) environment installed with `npm install -g ganache-cli` for local testing.
+- [Truffle](https://www.trufflesuite.com/truffle) for compiling, deploying and testing (installed globally via npm).
+- (optional) [Ganache](https://www.trufflesuite.com/ganache) for local testing (installed globally via npm).
 - (optional) A file named `.env`
 
 Your `.env` file should contain any of the following:
