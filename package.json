@@ -8,7 +8,7 @@
     "generate-merkle-root:example": "ts-node scripts/generate-merkle-root.ts --input scripts/example.json",
     "verify-merkle-root": "ts-node scripts/verify-merkle-root.ts",
     "verify-merkle-root:example": "ts-node scripts/verify-merkle-root.ts --input scripts/result.json",
-    "test": "mocha"
+    "test": "truffle compile && mocha"
   },
   "keywords": [],
   "license": "MIT",
