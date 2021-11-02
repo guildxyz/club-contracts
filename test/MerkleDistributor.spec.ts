@@ -403,6 +403,19 @@ describe("MerkleDistributor", () => {
       await expect(distributor.withdraw(wallet0.address)).to.be.revertedWith("Distribution period did not end");
     });
 
+    it("fails if there's nothing to withdraw", async () => {
+      const distributor = await deployContract(
+        wallet0,
+        Distributor,
+        [token.address, ZERO_BYTES32, distributionDuration],
+        overrides
+      );
+      await increaseTime(provider, distributionDuration + 1);
+      const balance = await token.balanceOf(distributor.address);
+      expect(balance).to.eq(BigNumber.from("0"));
+      await expect(distributor.withdraw(wallet0.address)).to.be.revertedWith("Nothing to withdraw");
+    });
+
     it("transfers tokens to the recipient", async () => {
       const distributor = await deployContract(
         wallet0,
