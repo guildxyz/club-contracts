@@ -24,8 +24,5 @@ jobs:
       - name: Install additional dependencies
         run: npm install truffle typescript @types/node  ts-node
 
-      - name: Compile contracts
-        run: npx truffle compile
-
       - name: Run tests
         run: npm test
