@@ -246,7 +246,7 @@ describe("MerkleDistributor", () => {
         const proof = tree.getProof(0, wallet0.address, BigNumber.from(100));
         const tx = await distributor.claim(0, wallet0.address, 100, proof, overrides);
         const receipt = await tx.wait();
-        expect(receipt.gasUsed).to.eq(78889);
+        expect(receipt.gasUsed).to.eq(78161);
       });
     });
 
@@ -287,7 +287,7 @@ describe("MerkleDistributor", () => {
         const proof = tree.getProof(9, wallets[9].address, BigNumber.from(10));
         const tx = await distributor.claim(9, wallets[9].address, 10, proof, overrides);
         const receipt = await tx.wait();
-        expect(receipt.gasUsed).to.eq(81578);
+        expect(receipt.gasUsed).to.eq(80850);
       });
 
       it("gas second down about 15k", async () => {
@@ -306,7 +306,7 @@ describe("MerkleDistributor", () => {
           overrides
         );
         const receipt = await tx.wait();
-        expect(receipt.gasUsed).to.eq(66558);
+        expect(receipt.gasUsed).to.eq(65830);
       });
     });
 
@@ -347,14 +347,14 @@ describe("MerkleDistributor", () => {
         const proof = tree.getProof(50000, wallet0.address, BigNumber.from(100));
         const tx = await distributor.claim(50000, wallet0.address, 100, proof, overrides);
         const receipt = await tx.wait();
-        expect(receipt.gasUsed).to.eq(93113);
+        expect(receipt.gasUsed).to.eq(92385);
       });
 
       it("gas deeper node", async () => {
         const proof = tree.getProof(90000, wallet0.address, BigNumber.from(100));
         const tx = await distributor.claim(90000, wallet0.address, 100, proof, overrides);
         const receipt = await tx.wait();
-        expect(receipt.gasUsed).to.eq(93049);
+        expect(receipt.gasUsed).to.eq(92321);
       });
 
       it("gas average random distribution", async () => {
@@ -368,7 +368,7 @@ describe("MerkleDistributor", () => {
           count++;
         }
         const average = total.div(count);
-        expect(average).to.eq(78525);
+        expect(average).to.eq(77797);
       });
 
       // this is what we gas golfed by packing the bitmap
@@ -383,7 +383,7 @@ describe("MerkleDistributor", () => {
           count++;
         }
         const average = total.div(count);
-        expect(average).to.eq(64287);
+        expect(average).to.eq(63559);
       });
 
       it("no double claims in random distribution", async () => {
