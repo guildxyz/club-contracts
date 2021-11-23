@@ -20,7 +20,7 @@ Your `.env` file should contain any of the following:
 - Your API key for verification.
   `ETHERSCAN_API_KEY='api key'`
 
-## Before deployment
+## Tasks before deployment, usage
 
 Pull the repository from GitHub, then install its dependencies by executing this command:
 
@@ -50,6 +50,24 @@ const distributionDuration = "86400"; // the duration of the rewards distributio
 
 Edit them according to your needs.  
 You can find the Merkle root in the previously generated json file.
+
+### Merkle vesting contract
+
+Open _migrations/4_deploy_vesting.js_. Edit the constant at the top according to your needs:
+
+```javascript
+const token = "0x..."; // the address of the token to be distributed
+```
+
+To add a new cohort to a deployed contract, you need to generate a Merkle tree. For that you'll need a .json file with the addresses you wish to ditribute rewards to and the respective token amounts in hexadecimal format. For help, take a look at the _example.json_ file in the _scripts_ folder.  
+Create a similarly structured file and place it next to the example file.  
+When you're ready, open a terminal in the project's directory and run this command (replace _[filename]_ with the relative path and name of your file):
+
+```bash
+npm run generate-merkle-root -- -i [filename]
+```
+
+If the script succeeded, you should see a file named _result.json_ in the _scripts_ folder, containing the Merkle root and the data needed for individual users to claim their tokens.
 
 ## Deployment
 
@@ -84,7 +102,8 @@ Replace _[start]_ with the number of the first and _[end]_ with the number of th
 - 1 - Migrations
 - 2 - Seed Club Mint
 - 3 - Merkle distributor
-- 4 - Staking Rewards
+- 4 - Merkle vesting
+- 5 - Staking Rewards
 
 If the script fails before starting the deployment, you might need to run the first one, too.
 
