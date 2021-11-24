@@ -77,7 +77,7 @@ contract MerkleVesting is IMerkleVesting, Multicall, Ownable {
 
     // Allows the owner to reclaim the tokens deposited in this contract.
     function withdraw(address recipient) external onlyOwner {
-        uint256 distributionEndLocal = cohorts[cohorts.length].data.distributionEnd;
+        uint256 distributionEndLocal = cohorts[cohorts.length - 1].data.distributionEnd;
         if (block.timestamp <= distributionEndLocal)
             // Not perfect: the most recently added might not end last
             revert DistributionOngoing(block.timestamp, distributionEndLocal);
