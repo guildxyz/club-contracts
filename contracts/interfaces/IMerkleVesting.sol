@@ -86,4 +86,7 @@ interface IMerkleVesting {
 
     // Error thrown when a function receives invalid parameters.
     error InvalidParameters();
+
+    // Error thrown when a cohort with an already existing merkle tree is attempted to be added.
+    error MerkleRootCollision();
 }

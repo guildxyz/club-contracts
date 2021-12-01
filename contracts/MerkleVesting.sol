@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/Multicall.sol";
 
 contract MerkleVesting is IMerkleVesting, Multicall, Ownable {
     address public immutable token;
-    bytes32 internal lastCohort; // the one which ends last, not added last
+    bytes32 internal lastCohort; // The one which ends last, not added last.
 
     mapping(bytes32 => Cohort) internal cohorts;
 
@@ -31,14 +31,25 @@ contract MerkleVesting is IMerkleVesting, Multicall, Ownable {
         uint64 vestingPeriod,
         uint64 cliffPeriod
     ) external onlyOwner {
-        if (merkleRoot == bytes32(0) || distributionDuration == 0 || vestingPeriod == 0) revert InvalidParameters();
+        if (
+            merkleRoot == bytes32(0) ||
+            distributionDuration == 0 ||
+            vestingPeriod == 0 ||
+            distributionDuration < vestingPeriod ||
+            distributionDuration < cliffPeriod ||
+            vestingPeriod < cliffPeriod
+        ) revert InvalidParameters();
+        if (cohorts[merkleRoot].data.merkleRoot != bytes32(0)) revert MerkleRootCollision();
+
         uint256 distributionEnd = block.timestamp + distributionDuration;
         if (distributionEnd > cohorts[lastCohort].data.distributionEnd) lastCohort = merkleRoot;
+
         cohorts[merkleRoot].data.merkleRoot = merkleRoot;
         cohorts[merkleRoot].data.distributionEnd = uint64(distributionEnd);
         cohorts[merkleRoot].data.vestingEnd = uint64(block.timestamp + vestingPeriod);
         cohorts[merkleRoot].data.vestingPeriod = vestingPeriod;
         cohorts[merkleRoot].data.cliffPeriod = cliffPeriod;
+
         emit CohortAdded(merkleRoot);
     }
 

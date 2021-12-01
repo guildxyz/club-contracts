@@ -85,10 +85,30 @@ describe("MerkleVesting", () => {
 
     it("fails if called with invalid parameters", async () => {
       const vesting = await deployContract(wallet0, Vesting, [token.address]);
+      // error InvalidParameters();
       await expect(vesting.addCohort(constants.HashZero, distributionDuration, randomVestingPeriod, randomCliff)).to.be
         .reverted;
       await expect(vesting.addCohort(randomRoot0, 0, randomVestingPeriod, randomCliff)).to.be.reverted;
       await expect(vesting.addCohort(randomRoot0, distributionDuration, 0, randomCliff)).to.be.reverted;
+    });
+
+    it("fails when trying to create two cohorts with the same root", async () => {
+      const vesting = await deployContract(wallet0, Vesting, [token.address]);
+      await vesting.addCohort(randomRoot0, distributionDuration, randomVestingPeriod, randomCliff);
+      // error MerkleRootCollision();
+      await expect(vesting.addCohort(randomRoot0, distributionDuration, randomVestingPeriod, randomCliff)).to.be
+        .reverted;
+    });
+
+    it("fails when cliff < vesting < distribution is not true", async () => {
+      const vesting = await deployContract(wallet0, Vesting, [token.address]);
+      // error InvalidParameters();
+      await expect(vesting.addCohort(randomRoot0, randomVestingPeriod, distributionDuration, randomCliff)).to.be
+        .reverted;
+      await expect(vesting.addCohort(randomRoot0, randomCliff, distributionDuration, randomVestingPeriod)).to.be
+        .reverted;
+      await expect(vesting.addCohort(randomRoot0, distributionDuration, randomCliff, randomVestingPeriod)).to.be
+        .reverted;
     });
 
     it("sets the cohort data correctly", async () => {
@@ -108,7 +128,9 @@ describe("MerkleVesting", () => {
       await expect(vesting.addCohort(randomRoot0, distributionDuration, randomVestingPeriod, randomCliff))
         .to.emit(vesting, "CohortAdded")
         .withArgs(randomRoot0);
-      await expect(vesting.addCohort(randomRoot1, distributionDuration, randomVestingPeriod, randomCliff))
+      await expect(
+        vesting.addCohort(randomRoot1, distributionDuration, randomVestingPeriod, randomCliff, { gasLimit: 150000 })
+      )
         .to.emit(vesting, "CohortAdded")
         .withArgs(randomRoot1);
     });
