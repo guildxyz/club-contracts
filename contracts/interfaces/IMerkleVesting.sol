@@ -29,10 +29,10 @@ interface IMerkleVesting {
     function token() external view returns (address);
 
     // Returns the parameters of a specific cohort.
-    function getCohort(uint256 cohortId) external view returns (CohortData memory);
+    function getCohort(bytes32 cohortId) external view returns (CohortData memory);
 
     // Returns the amount of funds an account has claimed.
-    function getClaimed(uint256 cohortId, address account) external view returns (uint256);
+    function getClaimed(bytes32 cohortId, address account) external view returns (uint256);
 
     // Allows the owner to add a new cohort.
     function addCohort(
@@ -44,7 +44,7 @@ interface IMerkleVesting {
 
     // Claim the given amount of the token to the given address. Reverts if the inputs are invalid.
     function claim(
-        uint256 cohortId,
+        bytes32 cohortId,
         uint256 index,
         address account,
         uint256 amount,
@@ -55,10 +55,10 @@ interface IMerkleVesting {
     function withdraw(address recipient) external;
 
     // This event is triggered whenever a call to #addCohort succeeds.
-    event CohortAdded(uint256 cohortId);
+    event CohortAdded(bytes32 cohortId);
 
     // This event is triggered whenever a call to #claim succeeds.
-    event Claimed(uint256 cohortId, address account, uint256 amount);
+    event Claimed(bytes32 cohortId, address account, uint256 amount);
 
     // This event is triggered whenever a call to #withdraw succeeds.
     event Withdrawn(address account, uint256 amount);
@@ -83,4 +83,7 @@ interface IMerkleVesting {
 
     // Error thrown when a transfer failed.
     error TransferFailed(address token, address from, address to);
+
+    // Error thrown when a function receives invalid parameters.
+    error InvalidParameters();
 }

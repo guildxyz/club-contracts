@@ -9,18 +9,19 @@ import "@openzeppelin/contracts/utils/Multicall.sol";
 
 contract MerkleVesting is IMerkleVesting, Multicall, Ownable {
     address public immutable token;
+    bytes32 internal lastCohort; // the one which ends last, not added last
 
-    Cohort[] internal cohorts; // It's indexes are referred to as "cohortId"
+    mapping(bytes32 => Cohort) internal cohorts;
 
     constructor(address token_) {
         token = token_;
     }
 
-    function getCohort(uint256 cohortId) external view returns (CohortData memory) {
+    function getCohort(bytes32 cohortId) external view returns (CohortData memory) {
         return cohorts[cohortId].data;
     }
 
-    function getClaimed(uint256 cohortId, address account) public view returns (uint256) {
+    function getClaimed(bytes32 cohortId, address account) public view returns (uint256) {
         return cohorts[cohortId].claims[account];
     }
 
@@ -30,24 +31,25 @@ contract MerkleVesting is IMerkleVesting, Multicall, Ownable {
         uint64 vestingPeriod,
         uint64 cliffPeriod
     ) external onlyOwner {
-        uint256 cohortId = cohorts.length;
-        cohorts.push();
-        cohorts[cohortId].data.merkleRoot = merkleRoot;
-        cohorts[cohortId].data.distributionEnd = uint64(block.timestamp + distributionDuration);
-        cohorts[cohortId].data.vestingEnd = uint64(block.timestamp + vestingPeriod);
-        cohorts[cohortId].data.vestingPeriod = vestingPeriod;
-        cohorts[cohortId].data.cliffPeriod = cliffPeriod;
-        emit CohortAdded(cohortId);
+        if (merkleRoot == bytes32(0) || distributionDuration == 0 || vestingPeriod == 0) revert InvalidParameters();
+        uint256 distributionEnd = block.timestamp + distributionDuration;
+        if (distributionEnd > cohorts[lastCohort].data.distributionEnd) lastCohort = merkleRoot;
+        cohorts[merkleRoot].data.merkleRoot = merkleRoot;
+        cohorts[merkleRoot].data.distributionEnd = uint64(distributionEnd);
+        cohorts[merkleRoot].data.vestingEnd = uint64(block.timestamp + vestingPeriod);
+        cohorts[merkleRoot].data.vestingPeriod = vestingPeriod;
+        cohorts[merkleRoot].data.cliffPeriod = cliffPeriod;
+        emit CohortAdded(merkleRoot);
     }
 
     function claim(
-        uint256 cohortId,
+        bytes32 cohortId,
         uint256 index,
         address account,
         uint256 amount,
         bytes32[] calldata merkleProof
     ) external {
-        if (cohorts.length <= cohortId) revert CohortDoesNotExist();
+        if (cohorts[cohortId].data.merkleRoot == bytes32(0)) revert CohortDoesNotExist();
         Cohort storage cohort = cohorts[cohortId];
         uint256 distributionEndLocal = cohort.data.distributionEnd;
         if (block.timestamp > distributionEndLocal) revert DistributionEnded(block.timestamp, distributionEndLocal);
@@ -77,10 +79,8 @@ contract MerkleVesting is IMerkleVesting, Multicall, Ownable {
 
     // Allows the owner to reclaim the tokens deposited in this contract.
     function withdraw(address recipient) external onlyOwner {
-        uint256 distributionEndLocal = cohorts[cohorts.length - 1].data.distributionEnd;
-        if (block.timestamp <= distributionEndLocal)
-            // Not perfect: the most recently added might not end last
-            revert DistributionOngoing(block.timestamp, distributionEndLocal);
+        uint256 distributionEndLocal = cohorts[lastCohort].data.distributionEnd;
+        if (block.timestamp <= distributionEndLocal) revert DistributionOngoing(block.timestamp, distributionEndLocal);
         uint256 balance = IERC20(token).balanceOf(address(this));
         if (balance == 0) revert AlreadyWithdrawn();
         if (!IERC20(token).transfer(recipient, balance)) revert TransferFailed(token, address(this), recipient);
