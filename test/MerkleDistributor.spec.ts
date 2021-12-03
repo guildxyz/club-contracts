@@ -13,6 +13,7 @@ const overrides = {
   gasLimit: 9999999
 };
 
+const gasEps = 1000;
 const ZERO_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 async function blockTimestamp(provider: any): Promise<BigNumber> {
@@ -246,7 +247,7 @@ describe("MerkleDistributor", () => {
         const proof = tree.getProof(0, wallet0.address, BigNumber.from(100));
         const tx = await distributor.claim(0, wallet0.address, 100, proof, overrides);
         const receipt = await tx.wait();
-        expect(receipt.gasUsed).to.eq(78161);
+        expect(receipt.gasUsed).to.closeTo(BigNumber.from(78161), gasEps);
       });
     });
 
@@ -287,7 +288,7 @@ describe("MerkleDistributor", () => {
         const proof = tree.getProof(9, wallets[9].address, BigNumber.from(10));
         const tx = await distributor.claim(9, wallets[9].address, 10, proof, overrides);
         const receipt = await tx.wait();
-        expect(receipt.gasUsed).to.eq(80850);
+        expect(receipt.gasUsed).to.closeTo(BigNumber.from(80850), gasEps);
       });
 
       it("gas second down about 15k", async () => {
@@ -306,7 +307,7 @@ describe("MerkleDistributor", () => {
           overrides
         );
         const receipt = await tx.wait();
-        expect(receipt.gasUsed).to.eq(65830);
+        expect(receipt.gasUsed).to.closeTo(BigNumber.from(65830), gasEps);
       });
     });
 
@@ -347,14 +348,14 @@ describe("MerkleDistributor", () => {
         const proof = tree.getProof(50000, wallet0.address, BigNumber.from(100));
         const tx = await distributor.claim(50000, wallet0.address, 100, proof, overrides);
         const receipt = await tx.wait();
-        expect(receipt.gasUsed).to.eq(92385);
+        expect(receipt.gasUsed).to.closeTo(BigNumber.from(92385), gasEps);
       });
 
       it("gas deeper node", async () => {
         const proof = tree.getProof(90000, wallet0.address, BigNumber.from(100));
         const tx = await distributor.claim(90000, wallet0.address, 100, proof, overrides);
         const receipt = await tx.wait();
-        expect(receipt.gasUsed).to.eq(92321);
+        expect(receipt.gasUsed).to.closeTo(BigNumber.from(92321), gasEps);
       });
 
       it("gas average random distribution", async () => {
@@ -368,7 +369,7 @@ describe("MerkleDistributor", () => {
           count++;
         }
         const average = total.div(count);
-        expect(average).to.eq(77797);
+        expect(average).to.closeTo(BigNumber.from(77797), gasEps);
       });
 
       // this is what we gas golfed by packing the bitmap
@@ -383,7 +384,7 @@ describe("MerkleDistributor", () => {
           count++;
         }
         const average = total.div(count);
-        expect(average).to.eq(63559);
+        expect(average).to.closeTo(BigNumber.from(63559), gasEps);
       });
 
       it("no double claims in random distribution", async () => {
