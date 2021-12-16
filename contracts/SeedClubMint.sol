@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
+import "./interfaces/ISeedClubMint.sol";
 import "./token/ERC20MintableAccessControlled.sol";
 import "./token/ERC20MintableOwned.sol";
 
-/// @title A contract that deploys ERC20 token contracts for anyone
-contract SeedClubMint {
-    event TokenDeployed(address token);
-
-    /// @notice Deploys a new ERC20 token contract
+contract SeedClubMint is ISeedClubMint {
     // prettier-ignore
     function createToken(
         string calldata tokenName,
