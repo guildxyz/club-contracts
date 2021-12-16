@@ -21,6 +21,22 @@ contract MerkleVesting is IMerkleVesting, Multicall, Ownable {
         return cohorts[cohortId].data;
     }
 
+    function getClaimableAmount(
+        bytes32 cohortId,
+        address account,
+        uint256 fullAmount
+    ) public view returns (uint256) {
+        Cohort storage cohort = cohorts[cohortId];
+        uint256 claimedSoFar = cohort.claims[account];
+        uint256 vestingEnd = cohort.data.vestingEnd;
+        uint256 vestingStart = vestingEnd - cohort.data.vestingPeriod;
+        uint256 cliff = vestingStart + cohort.data.cliffPeriod;
+        if (block.timestamp < cliff) revert CliffNotReached(cliff, block.timestamp);
+        else if (block.timestamp < vestingEnd)
+            return (fullAmount * (block.timestamp - vestingStart)) / cohort.data.vestingPeriod - claimedSoFar;
+        else return fullAmount - claimedSoFar;
+    }
+
     function getClaimed(bytes32 cohortId, address account) public view returns (uint256) {
         return cohorts[cohortId].claims[account];
     }
@@ -69,18 +85,9 @@ contract MerkleVesting is IMerkleVesting, Multicall, Ownable {
         bytes32 node = keccak256(abi.encodePacked(index, account, amount));
         if (!MerkleProof.verify(merkleProof, cohort.data.merkleRoot, node)) revert InvalidProof();
 
-        // Calculate the claimable amount.
-        uint256 claimableAmount;
-        uint256 claimedSoFar = cohort.claims[account];
-        uint256 vestingEnd = cohort.data.vestingEnd;
-        uint256 vestingStart = vestingEnd - cohort.data.vestingPeriod;
-        uint256 cliff = vestingStart + cohort.data.cliffPeriod;
-        if (block.timestamp < cliff) revert CliffNotReached(cliff, block.timestamp);
-        else if (block.timestamp < vestingEnd)
-            claimableAmount = (amount * (block.timestamp - vestingStart)) / cohort.data.vestingPeriod - claimedSoFar;
-        else claimableAmount = amount - claimedSoFar;
-
-        cohort.claims[account] = claimedSoFar + claimableAmount;
+        // Calculate the claimable amount and update the claimed amount on storage.
+        uint256 claimableAmount = getClaimableAmount(cohortId, account, amount);
+        cohort.claims[account] += claimableAmount;
 
         // Send the token.
         if (!IERC20(token).transfer(account, claimableAmount)) revert TransferFailed(token, address(this), account);
@@ -88,7 +95,6 @@ contract MerkleVesting is IMerkleVesting, Multicall, Ownable {
         emit Claimed(cohortId, account, claimableAmount);
     }
 
-    // Allows the owner to reclaim the tokens deposited in this contract.
     function withdraw(address recipient) external onlyOwner {
         uint256 distributionEndLocal = cohorts[lastEndingCohort].data.distributionEnd;
         if (block.timestamp <= distributionEndLocal) revert DistributionOngoing(block.timestamp, distributionEndLocal);

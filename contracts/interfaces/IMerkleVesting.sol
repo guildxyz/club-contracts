@@ -35,6 +35,16 @@ interface IMerkleVesting {
     /// @param cohortId The Merkle root of the cohort.
     function getCohort(bytes32 cohortId) external view returns (CohortData memory);
 
+    /// @notice Returns the amount of funds an account can claim at the moment.
+    /// @param cohortId The Merkle root of the cohort.
+    /// @param account The address of the account to query.
+    /// @param fullAmount The full amount of funds the account can claim.
+    function getClaimableAmount(
+        bytes32 cohortId,
+        address account,
+        uint256 fullAmount
+    ) external view returns (uint256);
+
     /// @notice Returns the amount of funds an account has claimed.
     /// @param cohortId The Merkle root of the cohort.
     /// @param account The address of the account to query.

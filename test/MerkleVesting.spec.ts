@@ -196,6 +196,17 @@ describe("MerkleVesting", () => {
         await expect(vesting.claim(root, 0, wallet0.address, 100, proof0)).to.be.reverted;
       });
 
+      it("correctly calculates the claimable amount", async () => {
+        const fullAmount = BigNumber.from(100);
+        await increaseTime(provider, randomCliff + randomVestingPeriod / 2);
+        const proof0 = tree.getProof(0, wallet0.address, fullAmount);
+        expect(await vesting.getClaimableAmount(root, wallet0.address, fullAmount)).to.eq(
+          await getClaimableAmount(provider, vesting, root, wallet0.address, fullAmount)
+        );
+        await vesting.claim(root, 0, wallet0.address, 100, proof0);
+        expect(await vesting.getClaimableAmount(root, wallet0.address, fullAmount)).to.eq(0);
+      });
+
       it("successful claim", async () => {
         await increaseTime(provider, randomCliff + 1);
         const proof0 = tree.getProof(0, wallet0.address, BigNumber.from(100));
