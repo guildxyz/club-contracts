@@ -15,7 +15,7 @@ contract ERC20InitialSupply is ERC20 {
         uint256 initialSupply
     ) ERC20(name, symbol) {
         _tokenDecimals = tokenDecimals;
-        _mint(owner, initialSupply);
+        if (initialSupply > 0) _mint(owner, initialSupply);
     }
 
     /// @dev See {ERC20-decimals}
