@@ -5,7 +5,7 @@ import "./ERC20InitialSupply.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 /// @title A mintable ERC20 token
-contract ERC20Mintable is ERC20InitialSupply, AccessControl {
+contract ERC20MintableAccessControlled is ERC20InitialSupply, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     constructor(

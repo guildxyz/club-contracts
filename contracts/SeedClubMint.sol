@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-import "./token/ERC20Mintable.sol";
+import "./token/ERC20MintableAccessControlled.sol";
+import "./token/ERC20MintableOwned.sol";
 
 /// @title A contract that deploys ERC20 token contracts for anyone
 contract SeedClubMint {
@@ -13,28 +14,40 @@ contract SeedClubMint {
         string calldata tokenName,
         string calldata tokenSymbol,
         uint8 tokenDecimals,
-        address tokenOwner,
         uint256 initialSupply,
-        bool mintable
+        address firstOwner,
+        bool mintable,
+        bool multiOwner
     ) external {
         address token;
         if (mintable)
-            token = address(
-                new ERC20Mintable(
-                    tokenName,
-                    tokenSymbol,
-                    tokenDecimals,
-                    tokenOwner,
-                    initialSupply
-                )
-            );
+            if (multiOwner)
+                token = address(
+                    new ERC20MintableAccessControlled(
+                        tokenName,
+                        tokenSymbol,
+                        tokenDecimals,
+                        firstOwner,
+                        initialSupply
+                    )
+                );
+            else
+                token = address(
+                    new ERC20MintableOwned(
+                        tokenName,
+                        tokenSymbol,
+                        tokenDecimals,
+                        firstOwner,
+                        initialSupply
+                    )
+                );
         else
             token = address(
                 new ERC20InitialSupply(
                     tokenName,
                     tokenSymbol,
                     tokenDecimals,
-                    tokenOwner,
+                    firstOwner,
                     initialSupply
                 )
             );
