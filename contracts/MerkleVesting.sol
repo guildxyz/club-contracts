@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/Multicall.sol";
 
 contract MerkleVesting is IMerkleVesting, Multicall, Ownable {
     address public immutable token;
-    bytes32 internal lastCohort; // The one which ends last, not added last.
+    bytes32 public lastEndingCohort;
 
     mapping(bytes32 => Cohort) internal cohorts;
 
@@ -42,7 +42,7 @@ contract MerkleVesting is IMerkleVesting, Multicall, Ownable {
         if (cohorts[merkleRoot].data.merkleRoot != bytes32(0)) revert MerkleRootCollision();
 
         uint256 distributionEnd = block.timestamp + distributionDuration;
-        if (distributionEnd > cohorts[lastCohort].data.distributionEnd) lastCohort = merkleRoot;
+        if (distributionEnd > cohorts[lastEndingCohort].data.distributionEnd) lastEndingCohort = merkleRoot;
 
         cohorts[merkleRoot].data.merkleRoot = merkleRoot;
         cohorts[merkleRoot].data.distributionEnd = uint64(distributionEnd);
@@ -90,7 +90,7 @@ contract MerkleVesting is IMerkleVesting, Multicall, Ownable {
 
     // Allows the owner to reclaim the tokens deposited in this contract.
     function withdraw(address recipient) external onlyOwner {
-        uint256 distributionEndLocal = cohorts[lastCohort].data.distributionEnd;
+        uint256 distributionEndLocal = cohorts[lastEndingCohort].data.distributionEnd;
         if (block.timestamp <= distributionEndLocal) revert DistributionOngoing(block.timestamp, distributionEndLocal);
         uint256 balance = IERC20(token).balanceOf(address(this));
         if (balance == 0) revert AlreadyWithdrawn();

@@ -28,6 +28,9 @@ interface IMerkleVesting {
     /// @notice Returns the address of the token distributed by this contract.
     function token() external view returns (address);
 
+    /// @notice Returns the id/Merkle root of the cohort ending at the latest.
+    function lastEndingCohort() external view returns (bytes32);
+
     /// @notice Returns the parameters of a specific cohort.
     /// @param cohortId The Merkle root of the cohort.
     function getCohort(bytes32 cohortId) external view returns (CohortData memory);

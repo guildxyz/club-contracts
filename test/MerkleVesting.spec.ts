@@ -111,6 +111,18 @@ describe("MerkleVesting", () => {
         .reverted;
     });
 
+    it("updates lastEndingCohort if needed", async () => {
+      const vesting = await deployContract(wallet0, Vesting, [token.address]);
+      const lastEndingCohort0 = await vesting.lastEndingCohort();
+      await vesting.addCohort(randomRoot0, distributionDuration, randomVestingPeriod, randomCliff);
+      const lastEndingCohort1 = await vesting.lastEndingCohort();
+      await vesting.addCohort(randomRoot1, distributionDuration - 1, randomVestingPeriod, randomCliff);
+      const lastEndingCohort2 = await vesting.lastEndingCohort();
+      expect(lastEndingCohort0).to.eq(constants.HashZero);
+      expect(lastEndingCohort1).to.eq(randomRoot0);
+      expect(lastEndingCohort2).to.eq(randomRoot0);
+    });
+
     it("sets the cohort data correctly", async () => {
       const vesting = await deployContract(wallet0, Vesting, [token.address]);
       await vesting.addCohort(randomRoot0, distributionDuration, randomVestingPeriod, randomCliff);
