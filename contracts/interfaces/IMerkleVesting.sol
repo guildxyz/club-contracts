@@ -3,15 +3,17 @@ pragma solidity ^0.8.0;
 
 /// @title Allows anyone to claim a token if they exist in a merkle root, but only over time.
 interface IMerkleVesting {
-    /// @notice The struct holding a specific cohort's data and the individual claim statuses
-    /// @param data The struct holding a specific cohort's data
+    /// @notice The struct holding a specific cohort's data and the individual claim statuses.
+    /// @param data The struct holding a specific cohort's data.
     /// @param claims Stores the amount of claimed funds per address.
+    /// @param disabledState A packed array of booleans. If true, the individual user cannot claim anymore.
     struct Cohort {
         CohortData data;
         mapping(address => uint256) claims;
+        mapping(uint256 => uint256) disabledState;
     }
 
-    /// @notice The struct holding a specific cohort's data
+    /// @notice The struct holding a specific cohort's data.
     /// @param merkleRoot The merkle root of the merkle tree containing account balances available to claim.
     /// @param distributionEnd The unix timestamp that marks the end of the token distribution.
     /// @param vestingEnd The unix timestamp that marks the end of the vesting period.
@@ -37,10 +39,12 @@ interface IMerkleVesting {
 
     /// @notice Returns the amount of funds an account can claim at the moment.
     /// @param cohortId The Merkle root of the cohort.
+    /// @param index A value from the generated input list.
     /// @param account The address of the account to query.
     /// @param fullAmount The full amount of funds the account can claim.
     function getClaimableAmount(
         bytes32 cohortId,
+        uint256 index,
         address account,
         uint256 fullAmount
     ) external view returns (uint256);
@@ -49,6 +53,16 @@ interface IMerkleVesting {
     /// @param cohortId The Merkle root of the cohort.
     /// @param account The address of the account to query.
     function getClaimed(bytes32 cohortId, address account) external view returns (uint256);
+
+    /// @notice Check if the address in a cohort at the index is excluded from the vesting.
+    /// @param cohortId The Merkle root of the cohort.
+    /// @param index A value from the generated input list.
+    function isDisabled(bytes32 cohortId, uint256 index) external view returns (bool);
+
+    /// @notice Exclude the address in a cohort at the index from the vesting.
+    /// @param cohortId The Merkle root of the cohort.
+    /// @param index A value from the generated input list.
+    function setDisabled(bytes32 cohortId, uint256 index) external;
 
     /// @notice Allows the owner to add a new cohort.
     /// @param distributionDuration The length of the token distribtion period in seconds.
@@ -128,4 +142,9 @@ interface IMerkleVesting {
 
     /// @notice Error thrown when a cohort with an already existing merkle tree is attempted to be added.
     error MerkleRootCollision();
+
+    /// @notice Error thrown when the input address has been excluded from the vesting.
+    /// @param cohortId The Merkle root of the cohort.
+    /// @param account The address that does not satisfy the requirements.
+    error NotInVesting(bytes32 cohortId, address account);
 }

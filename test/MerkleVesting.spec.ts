@@ -148,6 +148,41 @@ describe("MerkleVesting", () => {
     });
   });
 
+  describe("disabled state management", () => {
+    let vesting: Contract;
+
+    beforeEach("create a cohort", async () => {
+      vesting = await deployContract(wallet0, Vesting, [token.address]);
+      await vesting.addCohort(randomRoot0, distributionDuration, randomVestingPeriod, randomCliff);
+    });
+
+    it("fails if not called by owner", async () => {
+      const vestingFromAnotherAccount = vesting.connect(wallet1);
+      await expect(vestingFromAnotherAccount.setDisabled(randomRoot0, 0)).to.be.revertedWith(
+        "Ownable: caller is not the owner"
+      );
+    });
+
+    it("sets and gets the disabled state correctly", async () => {
+      const old0 = await vesting.isDisabled(randomRoot0, 0);
+      const old1 = await vesting.isDisabled(randomRoot0, 240);
+      const old2 = await vesting.isDisabled(randomRoot0, 260);
+      const old3 = await vesting.isDisabled(randomRoot0, 285);
+      await vesting.setDisabled(randomRoot0, 0); // 0
+      await vesting.setDisabled(randomRoot0, 260); // 2
+      const new0 = await vesting.isDisabled(randomRoot0, 0);
+      const new1 = await vesting.isDisabled(randomRoot0, 240);
+      const new2 = await vesting.isDisabled(randomRoot0, 260);
+      const new3 = await vesting.isDisabled(randomRoot0, 285);
+      expect(old0).to.be.false;
+      expect(new0).to.be.true;
+      expect(new1).to.eq(old1);
+      expect(old2).to.be.false;
+      expect(new2).to.be.true;
+      expect(new3).to.eq(old3);
+    });
+  });
+
   describe("#claim", () => {
     it("fails for invalid cohortId", async () => {
       const vesting = await deployContract(wallet0, Vesting, [token.address]);
@@ -196,15 +231,23 @@ describe("MerkleVesting", () => {
         await expect(vesting.claim(root, 0, wallet0.address, 100, proof0)).to.be.reverted;
       });
 
+      it("fails if the address is disabled", async () => {
+        const proof0 = tree.getProof(0, wallet0.address, BigNumber.from(100));
+        await increaseTime(provider, randomCliff + 1);
+        await vesting.setDisabled(root, 0);
+        // error NotInVesting(bytes32 cohortId, address account);
+        await expect(vesting.claim(root, 0, wallet0.address, 100, proof0)).to.be.reverted;
+      });
+
       it("correctly calculates the claimable amount", async () => {
         const fullAmount = BigNumber.from(100);
         await increaseTime(provider, randomCliff + randomVestingPeriod / 2);
         const proof0 = tree.getProof(0, wallet0.address, fullAmount);
-        expect(await vesting.getClaimableAmount(root, wallet0.address, fullAmount)).to.eq(
+        expect(await vesting.getClaimableAmount(root, 0, wallet0.address, fullAmount)).to.eq(
           await getClaimableAmount(provider, vesting, root, wallet0.address, fullAmount)
         );
         await vesting.claim(root, 0, wallet0.address, 100, proof0);
-        expect(await vesting.getClaimableAmount(root, wallet0.address, fullAmount)).to.eq(0);
+        expect(await vesting.getClaimableAmount(root, 0, wallet0.address, fullAmount)).to.eq(0);
       });
 
       it("successful claim", async () => {

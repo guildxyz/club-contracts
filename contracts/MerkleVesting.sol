@@ -23,6 +23,7 @@ contract MerkleVesting is IMerkleVesting, Multicall, Ownable {
 
     function getClaimableAmount(
         bytes32 cohortId,
+        uint256 index,
         address account,
         uint256 fullAmount
     ) public view returns (uint256) {
@@ -31,6 +32,7 @@ contract MerkleVesting is IMerkleVesting, Multicall, Ownable {
         uint256 vestingEnd = cohort.data.vestingEnd;
         uint256 vestingStart = vestingEnd - cohort.data.vestingPeriod;
         uint256 cliff = vestingStart + cohort.data.cliffPeriod;
+        if (isDisabled(cohortId, index)) revert NotInVesting(cohortId, account);
         if (block.timestamp < cliff) revert CliffNotReached(cliff, block.timestamp);
         else if (block.timestamp < vestingEnd)
             return (fullAmount * (block.timestamp - vestingStart)) / cohort.data.vestingPeriod - claimedSoFar;
@@ -39,6 +41,20 @@ contract MerkleVesting is IMerkleVesting, Multicall, Ownable {
 
     function getClaimed(bytes32 cohortId, address account) public view returns (uint256) {
         return cohorts[cohortId].claims[account];
+    }
+
+    function isDisabled(bytes32 cohortId, uint256 index) public view returns (bool) {
+        uint256 wordIndex = index / 256;
+        uint256 bitIndex = index % 256;
+        uint256 word = cohorts[cohortId].disabledState[wordIndex];
+        uint256 mask = (1 << bitIndex);
+        return word & mask == mask;
+    }
+
+    function setDisabled(bytes32 cohortId, uint256 index) external onlyOwner {
+        uint256 wordIndex = index / 256;
+        uint256 bitIndex = index % 256;
+        cohorts[cohortId].disabledState[wordIndex] = cohorts[cohortId].disabledState[wordIndex] | (1 << bitIndex);
     }
 
     function addCohort(
@@ -86,7 +102,7 @@ contract MerkleVesting is IMerkleVesting, Multicall, Ownable {
         if (!MerkleProof.verify(merkleProof, cohort.data.merkleRoot, node)) revert InvalidProof();
 
         // Calculate the claimable amount and update the claimed amount on storage.
-        uint256 claimableAmount = getClaimableAmount(cohortId, account, amount);
+        uint256 claimableAmount = getClaimableAmount(cohortId, index, account, amount);
         cohort.claims[account] += claimableAmount;
 
         // Send the token.
