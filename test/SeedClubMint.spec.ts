@@ -121,7 +121,7 @@ describe("SeedClubMint", () => {
       });
 
       it("should have correct metadata", async () => {
-        const tokenContract = new ethers.Contract(tokenAddress, ERC20MintableAccessControlled.abi, wallet0);
+        const tokenContract = new ethers.Contract(tokenAddress, ERC20InitialSupply.abi, wallet0);
         const name = await tokenContract.name();
         const symbol = await tokenContract.symbol();
         const decimals = await tokenContract.decimals();
@@ -131,7 +131,7 @@ describe("SeedClubMint", () => {
       });
 
       it("should have a total supply equal to the initial supply", async () => {
-        const tokenContract = new ethers.Contract(tokenAddress, ERC20MintableAccessControlled.abi, wallet0);
+        const tokenContract = new ethers.Contract(tokenAddress, ERC20InitialSupply.abi, wallet0);
         const totalSupply = await tokenContract.totalSupply();
         expect(totalSupply).to.eq(initialSupply);
       });
