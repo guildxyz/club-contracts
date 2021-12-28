@@ -1,5 +1,6 @@
 build
 node_modules
+scripts/readyInput.json
 scripts/result.json
 .env
 .vscode

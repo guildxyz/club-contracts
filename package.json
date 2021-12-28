@@ -4,6 +4,8 @@
   "description": "Token Minting, Distribution and Liquidity Rewards Infrastructure for Seed Club",
   "scripts": {
     "compile": "truffle compile",
+    "csv-to-json": "ts-node scripts/csv-list-to-json.ts",
+    "csv-to-json:example": "ts-node scripts/csv-list-to-json.ts --input scripts/example.csv",
     "generate-merkle-root": "ts-node scripts/generate-merkle-root.ts",
     "generate-merkle-root:example": "ts-node scripts/generate-merkle-root.ts --input scripts/example.json",
     "verify-merkle-root": "ts-node scripts/verify-merkle-root.ts",

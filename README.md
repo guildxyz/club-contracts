@@ -30,15 +30,7 @@ npm install
 
 ### Merkle distributor contract
 
-First you need to generate a Merkle tree. For that you'll need a .json file with the addresses you wish to ditribute rewards to and the respective token amounts in hexadecimal format. For help, take a look at the _example.json_ file in the _scripts_ folder.  
-Create a similarly structured file and place it next to the example file.  
-When you're ready, open a terminal in the project's directory and run this command (replace _[filename]_ with the relative path and name of your file):
-
-```bash
-npm run generate-merkle-root -- -i [filename]
-```
-
-If the script succeeded, you should see a file named _result.json_ in the _scripts_ folder.
+First you need to generate a Merkle tree. See section **Generating a Merkle tree** below.
 
 Open _migrations/3_deploy_distributor.js_. Notice the top three constants:
 
@@ -59,7 +51,11 @@ Open _migrations/4_deploy_vesting.js_. Edit the constant at the top according to
 const token = "0x..."; // the address of the token to be distributed
 ```
 
-To add a new cohort to a deployed contract, you need to generate a Merkle tree. For that you'll need a .json file with the addresses you wish to ditribute rewards to and the respective token amounts in hexadecimal format. For help, take a look at the _example.json_ file in the _scripts_ folder.  
+To add a new cohort to a deployed contract, you need to generate a Merkle tree. See section **Generating a Merkle tree** below.
+
+### Generating a Merkle tree
+
+First, you'll need a .json file with the addresses you wish to ditribute rewards to and the respective token amounts in hexadecimal format. For help, take a look at the _example.json_ file in the _scripts_ folder.  
 Create a similarly structured file and place it next to the example file.  
 When you're ready, open a terminal in the project's directory and run this command (replace _[filename]_ with the relative path and name of your file):
 
@@ -68,6 +64,16 @@ npm run generate-merkle-root -- -i [filename]
 ```
 
 If the script succeeded, you should see a file named _result.json_ in the _scripts_ folder, containing the Merkle root and the data needed for individual users to claim their tokens.
+
+#### Note
+
+If you exported a csv from a software like Google Sheets, with amounts in a more human readable form (decimal form, whole tokens (not "wei")), you can easily convert that to the json needed by the above script. You only need to run this command:
+
+```bash
+npm run csv-to-json -- -i [filename]
+```
+
+If the script succeeded, you should see a file named _readyInput.json_ in the _scripts_ folder.
 
 ## Deployment
 
