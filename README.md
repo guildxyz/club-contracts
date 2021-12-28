@@ -11,13 +11,13 @@ To run the project you need:
 - (optional) [Ganache](https://www.trufflesuite.com/ganache) for local testing (installed globally via npm).
 - (optional) A file named `.env`
 
-Your `.env` file should contain any of the following:
+Your `.env` file should contain the following:
 
-- Your 12-word MetaMask seedphrase for deploying.
+- Your 12-word MetaMask seedphrase for deploying:
   `MNEMONIC='seedphrase'`
-- Your [Infura](https://infura.io) project ID for deploying to Ethereum networks.
+- Your [Infura](https://infura.io) project ID for deploying to Ethereum networks:
   `INFURA_ID='id'`
-- Your API key for verification.
+- Your [Etherscan API key](https://etherscan.io/myapikey) for verification the source code:
   `ETHERSCAN_API_KEY='api key'`
 
 ## Tasks before deployment, usage
