@@ -9,7 +9,7 @@ To run the project you need:
 - [Node.js](https://nodejs.org) development environment.
 - [Truffle](https://www.trufflesuite.com/truffle) for compiling, deploying and testing (installed globally via npm).
 - (optional) [Ganache](https://www.trufflesuite.com/ganache) for local testing (installed globally via npm).
-- (optional) A file named `.env`
+- A file named `.env`
 
 Your `.env` file should contain the following:
 
@@ -109,13 +109,12 @@ Replace _[start]_ with the number of the first and _[end]_ with the number of th
 - 2 - Seed Club Mint
 - 3 - Merkle distributor
 - 4 - Merkle vesting
-- 5 - Staking Rewards
 
 If the script fails before starting the deployment, you might need to run the first one, too.
 
 ## Verification
 
-For automatic verification you can use [truffle plugin verify](https://github.com/rkalis/truffle-plugin-verify).
+For automatic verification of the source code on Etherscan you can use [truffle plugin verify](https://github.com/rkalis/truffle-plugin-verify):
 
 ```bash
 truffle run verify [contractName] --network [networkName]
