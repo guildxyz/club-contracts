@@ -32,7 +32,7 @@ npm install
 
 First you need to generate a Merkle tree. See section **Generating a Merkle tree** below.
 
-Open _migrations/3_deploy_distributor.js_. Notice the top three constants:
+Open _migrations/4_deploy_distributor.js_. Notice the top three constants:
 
 ```javascript
 const token = "0x..."; // the address of the token to be distributed
@@ -45,7 +45,7 @@ You can find the Merkle root in the previously generated json file.
 
 ### Merkle vesting contract
 
-Open _migrations/4_deploy_vesting.js_. Edit the constant at the top according to your needs:
+Open _migrations/5_deploy_vesting.js_. Edit the constant at the top according to your needs:
 
 ```javascript
 const token = "0x..."; // the address of the token to be distributed
@@ -106,9 +106,10 @@ truffle migrate -f [start] --to [end] --network [name]
 Replace _[start]_ with the number of the first and _[end]_ with the number of the last migration script you wish to run. To run only one script, _[start]_ and _[end]_ should match. The numbers of the scripts are:
 
 - 1 - Migrations
-- 2 - Seed Club Mint
-- 3 - Merkle distributor
-- 4 - Merkle vesting
+- 2 - Seed Club Token
+- 3 - Seed Club Mint
+- 4 - Merkle distributor
+- 5 - Merkle vesting
 
 If the script fails before starting the deployment, you might need to run the first one, too.
 
