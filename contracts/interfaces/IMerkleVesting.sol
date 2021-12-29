@@ -65,6 +65,7 @@ interface IMerkleVesting {
     function setDisabled(bytes32 cohortId, uint256 index) external;
 
     /// @notice Allows the owner to add a new cohort.
+    /// @param merkleRoot The Merkle root of the cohort. It will also serve as the cohort's ID.
     /// @param distributionDuration The length of the token distribtion period in seconds.
     /// @param vestingPeriod The length of the vesting period of the tokens in seconds.
     /// @param cliffPeriod The length of the cliff period in seconds.
@@ -80,6 +81,7 @@ interface IMerkleVesting {
     /// @param index A value from the generated input list.
     /// @param account A value from the generated input list.
     /// @param amount A value from the generated input list (so the full amount).
+    /// @param merkleProof A an array of values from the generated input list.
     function claim(
         bytes32 cohortId,
         uint256 index,
